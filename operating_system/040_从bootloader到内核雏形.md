@@ -1,6 +1,6 @@
 从bootloader到内核雏开多
 
-■整体设计                                    5(3                   ⑶+ C语言
+- 整体设计                                    5(3                   ⑶+ C语言
 
                汇编      的功能；通过BIOS茨取硬件                           KERNEL
 
@@ -14,7 +14,7 @@
 
 从bootloader到内核雏开多
 
-■问题
+- 问题
 
                    为什么不能从boot直接加载kernel,
                                并跳转运行？
@@ -23,7 +23,7 @@
 
 从bootloader到内核雏开多
 
-■设计思路
+- 设计思路
      -boot必须小于512字节，无法完成过多功能
      _ kerne丨需要运行于32位保护模式（汇编+ C语言）
      -使用loader中转：获取必要硬件信息，进入保护模式
@@ -32,13 +32,13 @@
 
 从bootloader到内核雏开多
 
-■ bootloader重构方案
+-  bootloader重构方案
 
 狄泰未来               © 2018成都狄泰未来科技有限公司                      唐佐林_教程
 
 从bootloader到内核雏开多
 
-■文件功能定义                         功能定义
+- 文件功能定义                         功能定义
 
             文件名                 常量定义，宏定义
 
@@ -55,10 +55,10 @@
 
 从bootloader到内核雏开多
 
-■ blfunc.asm 接口设计
+-  blfunc.asm 接口设计
 
 将bootloader相关函数        %include "blfunc.asm"
-扩展到雌，并■到
+扩展到雌，并- 到
 BLMain 对书iff           BaseOfStack            equ  0X7C00
                                                    0XB000
                        BaseOfTarget           equ
@@ -77,7 +77,7 @@ BLMain 对书iff           BaseOfStack            equ  0X7C00
 
 从bootloader到内核雏开多
 
-■ blfunc.asm注意事项
+-  blfunc.asm注意事项
     一 ％include "blfunc.asm" 必 须 是 第 _ 条 " 包 含 〃语句
     -%include "blfunc.asm"强制从BLMain标签处开始执行
     - Buffer为必要的内存缓冲区，必须在代码末尾定义
@@ -95,13 +95,13 @@ The shortest answer is doing.
 
 从bootloader到内核雏开多
 
-■内核雏形构造
+- 内核雏形构造
 
 狄泰       © 2018成都狄泰未来科技有限公司                                                                      酿林臟教程
 
 从bootloader到内核雏开多
 
-■问题
+- 问题
 
       kerne丨.out加载进内存后能直接被
              x86处理器运行吗？
@@ -110,7 +110,7 @@ The shortest answer is doing.
 
 从bootloader到内核雏开多
 
-■原因分析
+- 原因分析
     -kernel.out是Linux系统中的可执行程序
     -而Linux中的可执行程序为elf格式的文件（固定数据格式）
     -处理器只"认得"代码和数据，无法正确执行elf可执行程序
@@ -119,7 +119,7 @@ The shortest answer is doing.
 
 从bootloader到内核雏开多
 
-■ 方案设计
+-  方案设计
         提取elf文件中的代码段与数据段（删除e|f文件格式信息)
 
          重定位提取后的代码段和数据段，得到内核文件
@@ -130,7 +130,7 @@ The shortest answer is doing.
 
 从bootloader到内核雏开多
 
-■ elf2kobj 介绍
+-  elf2kobj 介绍
 
                                           delphi@delphi-vm:~$ ./elf2kobj
                                           // ELF file converter for the course of D.T.Software.
@@ -151,7 +151,7 @@ The shortest answer is doing.
 
 从bootloader到内核雏开多
 
-■解决方案
+- 解决方案
      1. nasm -felf kentry.asm -o objs/kentry.o
 
      2. CFLAGS := -fno-builtin -fno-stack-protector
@@ -174,11 +174,11 @@ The shortest answer is doing.
 
           内核雏形构建
 
-■使用nasm和gcc编译得到的是elf目标文件
-■ Id将elf目标文件装配成为elf可执行程序
-■使用elf2kobj将elf可执行程序转换为内核文件
-■在实模式下加载转换得到的内核文件
-■进入保护模式后执行跳转到内核起始位置处执行
+- 使用nasm和gcc编译得到的是elf目标文件
+-  Id将elf目标文件装配成为elf可执行程序
+- 使用elf2kobj将elf可执行程序转换为内核文件
+- 在实模式下加载转换得到的内核文件
+- 进入保护模式后执行跳转到内核起始位置处执行
 
 狄泰+今未来  ◎ 2018成都狄泰未来科技有限公司唐佐林视顷教程
 
