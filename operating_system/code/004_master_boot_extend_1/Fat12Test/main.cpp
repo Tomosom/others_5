@@ -29,14 +29,20 @@ struct Fat12Header
     char BS_FileSysType[8];
 };
 
+#if 0
 struct end
 {
     unsigned char b510;
     unsigned char b511;
 };
+#endif
 
 #pragma pack(pop)
 
+
+// 注: get()用来操作字符和字符串的, 应该替换为read()
+// http://www.cplusplus.com/reference/istream/istream/get/
+// http://www.cplusplus.com/reference/istream/istream/read/
 void PrintHeader(Fat12Header& rf, string p)
 {
     ifstream file(p.c_str());
@@ -49,7 +55,8 @@ void PrintHeader(Fat12Header& rf, string p)
 
     file.seekg(3);
 
-    file.get(reinterpret_cast<char*>(&rf), sizeof(rf) + 1); // get 不会移动文件指针
+    //file.get(reinterpret_cast<char*>(&rf), sizeof(rf) + 1); // error
+    file.read(reinterpret_cast<char*>(&rf), sizeof(rf));
 
     rf.BS_OEMName[7] = 0;
     rf.BS_VolLab[10] = 0;
@@ -77,13 +84,33 @@ void PrintHeader(Fat12Header& rf, string p)
 
     file.seekg(510);
 
+    /* 方法1 : 不推荐 */
+#if 0
+    char b510, b511;
+    file.get(b510);
+    file.get(b511);
+
+    cout << "Byte 510: " << hex << (static_cast<short>(b510) & 0xff) << endl;
+    cout << "Byte 510: " << hex << (static_cast<short>(b511) & 0xff) << endl;
+#endif
+
+    /* 方法2 : 正确做法 */
+    char b510, b511;
+    file.read(&b510, sizeof(b510));
+    file.read(&b511, sizeof(b511));
+
+    cout << "Byte 510: " << hex << (static_cast<short>(b510) & 0xff) << endl;
+    cout << "Byte 510: " << hex << (static_cast<short>(b511) & 0xff) << endl;
+
+    /* error */
+#if 0
     struct end e;
 
     file.get(reinterpret_cast<char*>(&e), sizeof(e) + 1);
 
     cout << "Byte 510: " << hex << (static_cast<short>(e.b510) & 0xff) << endl;
     cout << "Byte 511: " << hex << (static_cast<short>(e.b511) & 0xff) << endl;
-
+#endif
     file.close();
 }
 
