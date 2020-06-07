@@ -1,9 +1,17 @@
-#include <QtCore/QCoreApplication>
-#include <QFile>
-#include <QDataStream>
-#include <QDebug>
-#include <QVector>
-#include <QByteArray>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+bool starts_with(const string& s1, const string& s2) {
+    return s2.size() <= s1.size() && s1.compare(0, s2.size(), s2) == 0;
+}
+
+bool ends_with(const string& s1, const string& s2) {
+    return s2.size() <= s1.size() && s1.compare(s1.size() - s2.size(), s2.size(), s2) == 0;
+}
 
 #pragma pack(push)
 #pragma pack(1)
@@ -11,103 +19,108 @@
 struct Fat12Header
 {
     char BS_OEMName[8];
-    ushort BPB_BytsPerSec;
-    uchar BPB_SecPerClus;
-    ushort BPB_RsvdSecCnt;
-    uchar BPB_NumFATs;
-    ushort BPB_RootEntCnt;
-    ushort BPB_TotSec16;
-    uchar BPB_Media;
-    ushort BPB_FATSz16;
-    ushort BPB_SecPerTrk;
-    ushort BPB_NumHeads;
-    uint BPB_HiddSec;
-    uint BPB_TotSec32;
-    uchar BS_DrvNum;
-    uchar BS_Reserved1;
-    uchar BS_BootSig;
-    uint BS_VolID;
+    unsigned short BPB_BytsPerSec;
+    unsigned char BPB_SecPerClus;
+    unsigned short BPB_RsvdSecCnt;
+    unsigned char BPB_NumFATs;
+    unsigned short BPB_RootEntCnt;
+    unsigned short BPB_TotSec16;
+    unsigned char BPB_Media;
+    unsigned short BPB_FATSz16;
+    unsigned short BPB_SecPerTrk;
+    unsigned short BPB_NumHeads;
+    unsigned int BPB_HiddSec;
+    unsigned int BPB_TotSec32;
+    unsigned char BS_DrvNum;
+    unsigned char BS_Reserved1;
+    unsigned char BS_BootSig;
+    unsigned int BS_VolID;
     char BS_VolLab[11];
     char BS_FileSysType[8];
+
 };
 
 struct RootEntry
 {
     char DIR_Name[11];
-    uchar DIR_Attr;
-    uchar reserve[10];
-    ushort DIR_WrtTime;
-    ushort DIR_WrtDate;
-    ushort DIR_FstClus;
-    uint DIR_FileSize;
+    unsigned char DIR_Attr;
+    unsigned char reserve[10];
+    unsigned short DIR_WrtTime;
+    unsigned short DIR_WrtDate;
+    unsigned short DIR_FstClus;
+    unsigned int DIR_FileSize;
 };
 
 #pragma pack(pop)
 
-void PrintHeader(Fat12Header& rf, QString p)
+#if 1
+void PrintHeader(Fat12Header& rf, string p)
 {
-    QFile file(p);
+    ifstream file(p.c_str());
 
-    if( file.open(QIODevice::ReadOnly) )
+    if (!file.is_open())
     {
-        QDataStream in(&file);
-
-        file.seek(3);
-
-        in.readRawData(reinterpret_cast<char*>(&rf), sizeof(rf));
-
-        rf.BS_OEMName[7] = 0;
-        rf.BS_VolLab[10] = 0;
-        rf.BS_FileSysType[7] = 0;
-
-        qDebug() << "BS_OEMName: " << rf.BS_OEMName;
-        qDebug() << "BPB_BytsPerSec: " << hex << rf.BPB_BytsPerSec;
-        qDebug() << "BPB_SecPerClus: " << hex << rf.BPB_SecPerClus;
-        qDebug() << "BPB_RsvdSecCnt: " << hex << rf.BPB_RsvdSecCnt;
-        qDebug() << "BPB_NumFATs: " << hex << rf.BPB_NumFATs;
-        qDebug() << "BPB_RootEntCnt: " << hex << rf.BPB_RootEntCnt;
-        qDebug() << "BPB_TotSec16: " << hex << rf.BPB_TotSec16;
-        qDebug() << "BPB_Media: " << hex << rf.BPB_Media;
-        qDebug() << "BPB_FATSz16: " << hex << rf.BPB_FATSz16;
-        qDebug() << "BPB_SecPerTrk: " << hex << rf.BPB_SecPerTrk;
-        qDebug() << "BPB_NumHeads: " << hex << rf.BPB_NumHeads;
-        qDebug() << "BPB_HiddSec: " << hex << rf.BPB_HiddSec;
-        qDebug() << "BPB_TotSec32: " << hex << rf.BPB_TotSec32;
-        qDebug() << "BS_DrvNum: " << hex << rf.BS_DrvNum;
-        qDebug() << "BS_Reserved1: " << hex << rf.BS_Reserved1;
-        qDebug() << "BS_BootSig: " << hex << rf.BS_BootSig;
-        qDebug() << "BS_VolID: " << hex << rf.BS_VolID;
-        qDebug() << "BS_VolLab: " << rf.BS_VolLab;
-        qDebug() << "BS_FileSysType: " << rf.BS_FileSysType;
-
-        file.seek(510);
-
-        uchar b510 = 0;
-        uchar b511 = 0;
-
-        in.readRawData(reinterpret_cast<char*>(&b510), sizeof(b510));
-        in.readRawData(reinterpret_cast<char*>(&b511), sizeof(b511));
-
-        qDebug() << "Byte 510: " << hex << b510;
-        qDebug() << "Byte 511: " << hex << b511;
+        cout << "open file :" << p << "has failed!!" << endl;
+        return;
     }
+
+    file.seekg(3);
+
+    file.read(reinterpret_cast<char*>(&rf), sizeof(rf));
+
+    rf.BS_OEMName[7] = 0;
+    rf.BS_VolLab[10] = 0;
+    rf.BS_FileSysType[7] = 0;
+
+    cout << "BS_OEMName: " << rf.BS_OEMName << endl;
+    cout << "BPB_BytsPerSec: " << hex << rf.BPB_BytsPerSec << endl;
+    cout << "BPB_SecPerClus: " << hex << static_cast<short>(rf.BPB_SecPerClus) << endl;
+    cout << "BPB_RsvdSecCnt: " << hex << rf.BPB_RsvdSecCnt << endl;
+    cout << "BPB_NumFATs: " << hex << static_cast<short>(rf.BPB_NumFATs) << endl;
+    cout << "BPB_RootEntCnt: " << hex << rf.BPB_RootEntCnt << endl;
+    cout << "BPB_TotSec16: " << hex << rf.BPB_TotSec16 << endl;
+    cout << "BPB_Media: " << hex << static_cast<short>(rf.BPB_Media) << endl;
+    cout << "BPB_FATSz16: " << hex << rf.BPB_FATSz16 << endl;
+    cout << "BPB_SecPerTrk: " << hex << rf.BPB_SecPerTrk << endl;
+    cout << "BPB_NumHeads: " << hex << rf.BPB_NumHeads << endl;
+    cout << "BPB_HiddSec: " << hex << rf.BPB_HiddSec << endl;
+    cout << "BPB_TotSec32: " << hex << rf.BPB_TotSec32 << endl;
+    cout << "BS_DrvNum: " << hex << static_cast<short>(rf.BS_DrvNum) << endl;
+    cout << "BS_Reserved1: " << hex << static_cast<short>(rf.BS_Reserved1) << endl;
+    cout << "BS_BootSig: " << hex << static_cast<short>(rf.BS_BootSig) << endl;
+    cout << "BS_VolID: " << hex << rf.BS_VolID << endl;
+    cout << "BS_VolLab: " << rf.BS_VolLab << endl;
+    cout << "BS_FileSysType: " << rf.BS_FileSysType << endl;
+
+    file.seekg(510);
+
+    char b510, b511;
+    file.read(&b510, sizeof(b510));
+    file.read(&b511, sizeof(b511));
+
+    cout << "Byte 510: " << hex << static_cast<short>(b510) << endl;
+    cout << "Byte 510: " << hex << static_cast<short>(b511) << endl;
 
     file.close();
 }
+#endif
 
-RootEntry FindRootEntry(Fat12Header& rf, QString p, int i)
+#if 1
+RootEntry FindRootEntry(Fat12Header& rf, string p, int i)
 {
     RootEntry ret = {{0}};
 
-    QFile file(p);
-
-    if( file.open(QIODevice::ReadOnly) && (0 <= i) && (i < rf.BPB_RootEntCnt) )
+    ifstream file(p.c_str());
+    if (!file.is_open())
     {
-        QDataStream in(&file);
+        cout << "open file :" << p << "has failed!!" << endl;
+        return ret;
+    }
 
-        file.seek(19 * rf.BPB_BytsPerSec + i * sizeof(RootEntry));
-
-        in.readRawData(reinterpret_cast<char*>(&ret), sizeof(ret));
+    if( (0 <= i) && (i < rf.BPB_RootEntCnt) )
+    {
+        file.seekg(19 * rf.BPB_BytsPerSec + i * sizeof(RootEntry));
+        file.read(reinterpret_cast<char*>(&ret), sizeof(ret));
     }
 
     file.close();
@@ -115,34 +128,33 @@ RootEntry FindRootEntry(Fat12Header& rf, QString p, int i)
     return ret;
 }
 
-RootEntry FindRootEntry(Fat12Header& rf, QString p, QString fn)
+#if 1
+/* 根据文件名查找对应的文件项 */
+RootEntry FindRootEntry(Fat12Header& rf, string p, string fn)
 {
     RootEntry ret = {{0}};
 
-    for(int i=0; i<rf.BPB_RootEntCnt; i++)
-    {
+    for(int i = 0; i < rf.BPB_RootEntCnt; i++) {
         RootEntry re = FindRootEntry(rf, p, i);
 
-        if( re.DIR_Name[0] != '\0' )
-        {
-            int d = fn.lastIndexOf(".");
-            QString name = QString(re.DIR_Name).trimmed();
+        if( re.DIR_Name[0] != '\0' ) {
+            int d = fn.find_last_of(".");
 
-            if( d >= 0 )
-            {
-                QString n = fn.mid(0, d);
-                QString p = fn.mid(d + 1);
+            /* 去掉首位空格 */
+            string name = string(re.DIR_Name);
+            name.erase(0,name.find_first_not_of(" "));
+            name.erase(name.find_last_not_of(" ") + 1);
 
-                if( name.startsWith(n) && name.endsWith(p) )
-                {
+            if( d >= 0 ) {
+                string n = fn.substr(0, d);
+                string p = fn.substr(d + 1);
+
+                if( starts_with(name, n) && ends_with(name, p) ) {
                     ret = re;
                     break;
                 }
-            }
-            else
-            {
-                if( fn == name )
-                {
+            } else {
+                if( fn == name ) {
                     ret = re;
                     break;
                 }
@@ -152,46 +164,50 @@ RootEntry FindRootEntry(Fat12Header& rf, QString p, QString fn)
 
     return ret;
 }
+#endif
 
-void PrintRootEntry(Fat12Header& rf, QString p)
+void PrintRootEntry(Fat12Header& rf, string p)
 {
-    for(int i=0; i<rf.BPB_RootEntCnt; i++)
+    for(int i = 0; i < rf.BPB_RootEntCnt; i++)
     {
         RootEntry re = FindRootEntry(rf, p, i);
 
         if( re.DIR_Name[0] != '\0' )
         {
-            qDebug() << i << ":";
-            qDebug() << "DIR_Name: " << hex << re.DIR_Name;
-            qDebug() << "DIR_Attr: " << hex << re.DIR_Attr;
-            qDebug() << "DIR_WrtDate: " << hex << re.DIR_WrtDate;
-            qDebug() << "DIR_WrtTime: " << hex << re.DIR_WrtTime;
-            qDebug() << "DIR_FstClus: " << hex << re.DIR_FstClus;
-            qDebug() << "DIR_FileSize: " << hex << re.DIR_FileSize;
+            cout << i << ":" << endl;
+            cout << "DIR_Name: " << hex << re.DIR_Name << endl;
+            cout << "DIR_Attr: " << hex << static_cast<short>(re.DIR_Attr) << endl;
+            cout << "DIR_WrtDate: " << hex << re.DIR_WrtDate << endl;
+            cout << "DIR_WrtTime: " << hex << re.DIR_WrtTime << endl;
+            cout << "DIR_FstClus: " << hex << re.DIR_FstClus << endl;
+            cout << "DIR_FileSize: " << hex << re.DIR_FileSize << endl;
         }
     }
 }
+#endif
 
-QVector<ushort> ReadFat(Fat12Header& rf, QString p)
+/* 读取指定文件的内容 */
+#if 1
+/* 读 fat 表 */
+vector<unsigned short> ReadFat(Fat12Header& rf, string p)
 {
-    QFile file(p);
+    ifstream file(p.c_str());
     int size = rf.BPB_BytsPerSec * 9;
-    uchar* fat = new uchar[size];
-    QVector<ushort> ret(size * 2 / 3, 0xFFFF);
+    unsigned char* fat = new unsigned char[size];
+    vector<unsigned short> ret(size * 2 / 3, 0xFFFF);
 
-    if( file.open(QIODevice::ReadOnly) )
-    {
-        QDataStream in(&file);
+    if (!file.is_open()) {
+        cout << "open file :" << p << "has failed!!" << endl;
+        return ret;
+    }
 
-        file.seek(rf.BPB_BytsPerSec * 1);
+    file.seekg(rf.BPB_BytsPerSec * 1);
 
-        in.readRawData(reinterpret_cast<char*>(fat), size);
+    file.read(reinterpret_cast<char*>(fat), size);
 
-        for(int i=0, j=0; i<size; i+=3, j+=2)
-        {
-            ret[j] = static_cast<ushort>((fat[i+1] & 0x0F) << 8) | fat[i];
-            ret[j+1] = static_cast<ushort>(fat[i+2] << 4) | ((fat[i+1] >> 4) & 0x0F);
-        }
+    for(int i = 0, j = 0; i < size; i += 3, j += 2) {
+        ret[j] = static_cast<unsigned short>((fat[i + 1] & 0x0F) << 8) | fat[i];
+        ret[j + 1] = static_cast<unsigned short>(fat[i + 2] << 4) | ((fat[i + 1] >> 4) & 0x0F);
     }
 
     file.close();
@@ -201,37 +217,38 @@ QVector<ushort> ReadFat(Fat12Header& rf, QString p)
     return ret;
 }
 
-QByteArray ReadFileContent(Fat12Header& rf, QString p, QString fn)
+string ReadFileContent(Fat12Header& rf, string p, string fn)
 {
-    QByteArray ret;
+    string ret;
     RootEntry re = FindRootEntry(rf, p, fn);
 
     if( re.DIR_Name[0] != '\0' )
     {
-        QVector<ushort> vec = ReadFat(rf, p);
-        QFile file(p);
+        vector<unsigned short> vec = ReadFat(rf, p);
+        ifstream file(p.c_str());
 
-        if( file.open(QIODevice::ReadOnly) )
+        if (!file.is_open()) {
+            cout << "open file :" << p << "has failed!!" << endl;
+            return ret;
+        }
+
+        char buf[512] = {0};
+        int count = 0;
+
+        ret.resize(re.DIR_FileSize);
+
+        for(int i = 0, j = re.DIR_FstClus; j < 0xFF7; i += 512, j = vec[j])
         {
-            char buf[512] = {0};
-            QDataStream in(&file);
-            int count = 0;
+            file.seekg(rf.BPB_BytsPerSec * (33 + j - 2));
 
-            ret.resize(re.DIR_FileSize);
+            file.read(buf, sizeof(buf));
 
-            for(int i=0, j=re.DIR_FstClus; j<0xFF7; i+=512, j=vec[j])
+            for(unsigned int k = 0; k < sizeof(buf); k++)
             {
-                file.seek(rf.BPB_BytsPerSec * (33 + j - 2));
-
-                in.readRawData(buf, sizeof(buf));
-
-                for(uint k=0; k<sizeof(buf); k++)
+                if( count < ret.size() )
                 {
-                    if( count < ret.size() )
-                    {
-                        ret[i+k] = buf[k];
-                        count++;
-                    }
+                    ret[i + k] = buf[k];
+                    count++;
                 }
             }
         }
@@ -241,30 +258,47 @@ QByteArray ReadFileContent(Fat12Header& rf, QString p, QString fn)
 
     return ret;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-    QString img = "E:\\data.img";
     Fat12Header f12;
+    string img = "data.img";
 
-    qDebug() << "Read Header:";
-
+#if 1
+    cout << "*** Read Header ***" << endl;
     PrintHeader(f12, img);
+    cout << endl;
+#endif
 
-    qDebug() << endl;
 
-    qDebug() << "Print Root Entry:";
-
+#if 1
+    cout << "*** Print Root Entry ***" << endl;
     PrintRootEntry(f12, img);
+    cout << endl;
+#if 1
+    /* 根据文件名查找对应的文件项 */
+    cout << "*** Find Root Entry ***" << endl;
+    //RootEntry re = FindRootEntry(f12, img, "TEST.TXT"); // exist
+    RootEntry re = FindRootEntry(f12, img, "LOAD.BIN"); // exist
+    //RootEntry re = FindRootEntry(f12, img, "load.bin"); // not exist
+    cout << "DIR_Name: " << hex << re.DIR_Name << endl;
+    cout << "DIR_Attr: " << hex << static_cast<short>(re.DIR_Attr) << endl;
+    cout << "DIR_WrtDate: " << hex << re.DIR_WrtDate << endl;
+    cout << "DIR_WrtTime: " << hex << re.DIR_WrtTime << endl;
+    cout << "DIR_FstClus: " << hex << re.DIR_FstClus << endl;
+    cout << "DIR_FileSize: " << hex << re.DIR_FileSize << endl;
+    cout << endl;
+#endif
+#endif
 
-    qDebug() << endl;
+#if 1
+    cout << "*** Print File Content ***" << endl;
+    //string content = ReadFileContent(f12, img, "TEST.TXT"); // exist
+    string content = ReadFileContent(f12, img, "LOAD.BIN"); // exist
+    //string content = ReadFileContent(f12, img, "load.bin"); // not exist
+    cout << content << endl;
+#endif
 
-    qDebug() << "Print File Content:";
-
-    QString content = QString(ReadFileContent(f12, img, "DELPHI.DT"));
-
-    qDebug() << content;
-
-    return a.exec();
+    return 0;
 }
