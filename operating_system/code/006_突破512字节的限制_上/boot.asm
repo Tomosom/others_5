@@ -1,9 +1,11 @@
 org 0x7c00
 
-jmp short start
-nop
+jmp short start ; 前面有3个字节的跳转指令, short代表短跳转,跳转的字节数比较小, jmp占用一个字节, start占用一个字节
+nop ; 空指令占用一个指令
 
 define:
+    ; 为什么主引导程序的起始地址能作为栈空间的起始地址?
+    ; 因为代码的执行使用低地址向高地址执行, 而栈的增长方向是从高地址向低地址增长
     BaseOfStack equ 0x7c00
 
 header:
@@ -28,7 +30,7 @@ header:
     BS_FileSysType db "FAT12   "
 
 start:
-    mov ax, cs
+    mov ax, cs ; 基本的寄存器初始化
     mov ss, ax
     mov ds, ax
     mov es, ax
@@ -57,9 +59,10 @@ Print:
     int 0x10
     ret
 
+; 重置软驱
 ; no parameter
 ResetFloppy:
-    push ax
+    push ax ; 在栈中备份
     push dx
     
     mov ah, 0x00
@@ -71,6 +74,7 @@ ResetFloppy:
     
     ret
 
+; 读取软驱数据
 ; ax    --> logic sector number
 ; cx    --> number of sector
 ; es:bx --> target address

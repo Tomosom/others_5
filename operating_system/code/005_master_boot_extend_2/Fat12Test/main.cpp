@@ -106,6 +106,7 @@ void PrintHeader(Fat12Header& rf, string p)
 #endif
 
 #if 1
+/* 读取第 i 个目录项 */
 RootEntry FindRootEntry(Fat12Header& rf, string p, int i)
 {
     RootEntry ret = {{0}};
@@ -140,20 +141,20 @@ RootEntry FindRootEntry(Fat12Header& rf, string p, string fn)
         if( re.DIR_Name[0] != '\0' ) {
             int d = fn.find_last_of(".");
 
-            /* 去掉首位空格 */
+            /* 去掉首尾空格 */
             string name = string(re.DIR_Name);
             name.erase(0,name.find_first_not_of(" "));
             name.erase(name.find_last_not_of(" ") + 1);
 
             if( d >= 0 ) {
-                string n = fn.substr(0, d);
-                string p = fn.substr(d + 1);
+                string pre = fn.substr(0, d);
+                string post = fn.substr(d + 1);
 
-                if( starts_with(name, n) && ends_with(name, p) ) {
+                if( starts_with(name, pre) && ends_with(name, post) ) {
                     ret = re;
                     break;
                 }
-            } else {
+            } else { // 无后缀的文件名
                 if( fn == name ) {
                     ret = re;
                     break;
@@ -166,6 +167,7 @@ RootEntry FindRootEntry(Fat12Header& rf, string p, string fn)
 }
 #endif
 
+/* 打印所有非空的目录项 */
 void PrintRootEntry(Fat12Header& rf, string p)
 {
     for(int i = 0; i < rf.BPB_RootEntCnt; i++)
@@ -188,24 +190,25 @@ void PrintRootEntry(Fat12Header& rf, string p)
 
 /* 读取指定文件的内容 */
 #if 1
-/* 读 fat 表 */
+/* 读 fat 表, 存的内容是簇号 */
 vector<unsigned short> ReadFat(Fat12Header& rf, string p)
 {
     ifstream file(p.c_str());
     int size = rf.BPB_BytsPerSec * 9;
     unsigned char* fat = new unsigned char[size];
-    vector<unsigned short> ret(size * 2 / 3, 0xFFFF);
+    vector<unsigned short> ret(size * 2 / 3, 0xFFFF); // 初始值为 0xFFFF
 
     if (!file.is_open()) {
         cout << "open file :" << p << "has failed!!" << endl;
         return ret;
     }
 
-    file.seekg(rf.BPB_BytsPerSec * 1);
+    file.seekg(rf.BPB_BytsPerSec * 1); // 读fat表1
 
     file.read(reinterpret_cast<char*>(fat), size);
 
-    for(int i = 0, j = 0; i < size; i += 3, j += 2) {
+    /* FAT表中的每个表项只占用12比特（1.5字节） */
+    for(int i = 0, j = 0; i < size; i += 3, j += 2) { /* 3个字节表示2个fat表项 */
         ret[j] = static_cast<unsigned short>((fat[i + 1] & 0x0F) << 8) | fat[i];
         ret[j + 1] = static_cast<unsigned short>(fat[i + 2] << 4) | ((fat[i + 1] >> 4) & 0x0F);
     }
@@ -217,6 +220,7 @@ vector<unsigned short> ReadFat(Fat12Header& rf, string p)
     return ret;
 }
 
+/* 读指定文件的内容 */
 string ReadFileContent(Fat12Header& rf, string p, string fn)
 {
     string ret;
@@ -237,8 +241,10 @@ string ReadFileContent(Fat12Header& rf, string p, string fn)
 
         ret.resize(re.DIR_FileSize);
 
+        /* 一个扇区一个扇区地读 */
         for(int i = 0, j = re.DIR_FstClus; j < 0xFF7; i += 512, j = vec[j])
         {
+            /* 数据区起始地址所对应的编号(簇号)为2 ( 不为0 ) */
             file.seekg(rf.BPB_BytsPerSec * (33 + j - 2));
 
             file.read(buf, sizeof(buf));
