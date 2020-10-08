@@ -1,7 +1,9 @@
 
 .PHONY : all clean rebuild
 
-SRC := boot.asm
+#SRC := boot.asm
+SRC := boot_v1.asm
+#SRC := boot.asm
 OUT := boot.bin
 IMG := data.img
 
