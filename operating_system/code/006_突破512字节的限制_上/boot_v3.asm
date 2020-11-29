@@ -5,18 +5,10 @@ org 0x7c00
 jmp short start ; 跳转到start这个标签处, short代表短跳转,跳转的字节数比较小, jmp占用一个字节, 目标地址start, 由于是短跳转, 也占用一个字节
 nop ; 空指令占用一个指令
 
-;
-;  low addr |        |
-;           |        |
-;           |   sp   |
-;           |        |
-;    0x7c00 | ------ | <- sp
-;           |        |
-;           |  code  |
-;           |        |
-; high addr |        |
-;
+; 有函数调用就需要用到栈空间
+; 自己定义栈空间
 define:
+    ; 0x7c00是主引导程序的起始地址
     ; 为什么主引导程序的起始地址能作为栈空间的起始地址?
     ; 因为代码的执行使用低地址向高地址执行, 而栈的增长方向是从高地址向低地址增长
     BaseOfStack equ 0x7c00
@@ -48,10 +40,16 @@ start:
     mov ss, ax
     mov ds, ax
     mov es, ax
-    mov sp, BaseOfStack ; 让sp指针指向栈的起始地址处
+    mov sp, BaseOfStack ; 让 sp 指针指向栈的起始地址处
     
-    mov bp, MsgStr ; 类似形参?
-    mov cx, MsgLen ; 打印字符个数
+    mov ax, 34
+    mov cx, 1
+    mov bx, Buf
+    
+    call ReadSector
+    
+    mov bp, Buf
+    mov cx, 29
     
     call Print
     
@@ -68,8 +66,64 @@ Print:
     int 0x10
     ret
 
+; 重置软驱
+; no parameter
+ResetFloppy:
+    push ax ; 在栈中备份
+    push dx
+    
+    mov ah, 0x00
+    mov dl, [BS_DrvNum]
+    int 0x13
+    
+    pop dx
+    pop ax
+    
+    ret
+
+; 读取软驱数据
+; ax    --> logic sector number
+; cx    --> number of sector
+; es:bx --> target address
+ReadSector:
+    push bx
+    push cx
+    push dx
+    push ax
+    
+    call ResetFloppy
+    
+    push bx ; 下面修改了bx寄存器的值, 因此此处压栈保存
+    push cx
+    
+    mov bl, [BPB_SecPerTrk]
+    div bl
+    mov cl, ah
+    add cl, 1
+    mov ch, al
+    shr ch, 1
+    mov dh, al
+    and dh, 1
+    mov dl, [BS_DrvNum]
+    
+    pop ax
+    pop bx
+    
+    mov ah, 0x02
+
+read:    
+    int 0x13
+    jc read
+    
+    pop ax
+    pop dx
+    pop cx
+    pop bx
+    
+    ret
+
 ; 要打印的字符串,定义在这里
-MsgStr db "Hello, DTOS!"
+MsgStr db  "Hello, DTOS!"    
 MsgLen equ ($-MsgStr) ; $ : 当前代码的地址. 两个地址之差
 Buf:
     times 510-($-$$) db 0x00
