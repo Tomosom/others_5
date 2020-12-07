@@ -42,14 +42,15 @@ start:
     mov es, ax
     mov sp, BaseOfStack ; 让 sp 指针指向栈的起始地址处
     
-    mov ax, 34
-    mov cx, 1
-    mov bx, Buf
+    mov ax, 43 ; 要读取的逻辑扇区号
+    mov cx, 2 ; 需要连续地读取扇区数
+    mov bx, Buf ; 读取到Buf: 目标内存的地址
     
-    call ReadSector
+    call ReadSector ; 调用结束后, 一个扇区的内容都搬到了Buf里边
     
+    ; 打印测试
     mov bp, Buf
-    mov cx, 29
+    mov cx, 1000 ; 打印字节数
     
     call Print
     
@@ -73,7 +74,7 @@ ResetFloppy:
     push dx
     
     mov ah, 0x00
-    mov dl, [BS_DrvNum]
+    mov dl, [BS_DrvNum] ; DL寄存器:当前的燃区号, BS_DrvNum:在fat12文件系统的头信息中定义了软驱的编号
     int 0x13
     
     pop dx
@@ -93,27 +94,27 @@ ReadSector:
     
     call ResetFloppy
     
-    push bx ; 下面修改了bx寄存器的值, 因此此处压栈保存
+    push bx ; 下面修改了bx寄存器的值, 意味着目标内存的地址被改变了. 因此此处压栈保存, 此处遗漏可反汇编调试
     push cx
     
-    mov bl, [BPB_SecPerTrk]
-    div bl
+    mov bl, [BPB_SecPerTrk] ; 除数:18, 每个柱面所拥有的扇区数
+    div bl ; 商在al, 余数在ah
     mov cl, ah
-    add cl, 1
+    add cl, 1 ; 扇区号
     mov ch, al
-    shr ch, 1
+    shr ch, 1 ; 柱面号
     mov dh, al
-    and dh, 1
-    mov dl, [BS_DrvNum]
+    and dh, 1 ; 磁头号
+    mov dl, [BS_DrvNum] ; 驱动器号:A盘
     
-    pop ax
+    pop ax ; 将cx寄存器的值出栈, 放到ax寄存器中, 这样ax中就有了我们要读取的扇区的数量
     pop bx
     
-    mov ah, 0x02
+    mov ah, 0x02 ; 读的时候ah = 0x02, 这是规定好的
 
 read:    
     int 0x13
-    jc read
+    jc read ; 执行0x13号中断的时候有可能读取失败. 若错误标志位被设置, 则跳转重读
     
     pop ax
     pop dx
