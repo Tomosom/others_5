@@ -42,15 +42,15 @@ start:
     mov es, ax
     mov sp, BaseOfStack ; 让 sp 指针指向栈的起始地址处
     
-    mov ax, 43 ; 要读取的逻辑扇区号
-    mov cx, 2 ; 需要连续地读取扇区数
+    mov ax, 43 ; 要读取的逻辑扇区号 ; 34
+    mov cx, 2 ; 需要连续地读取扇区数 ; 1
     mov bx, Buf ; 读取到Buf: 目标内存的地址
     
     call ReadSector ; 调用结束后, 一个扇区的内容都搬到了Buf里边
     
     ; 打印测试
     mov bp, Buf
-    mov cx, 1000 ; 打印字节数
+    mov cx, 1000 ; 打印字节数 ; 29
     
     call Print
     

@@ -33,12 +33,12 @@
 00007C3D  208CC88E          and [si-0x7138],cl
 00007C41  D08ED88E          ror byte [bp-0x7128],1
 00007C45  C0BC007CB8        sar byte [si+0x7c00],0xb8
-00007C4A  2200              and al,[bx+si]
-00007C4C  B90100            mov cx,0x1
+00007C4A  2B00              sub ax,[bx+si]
+00007C4C  B90200            mov cx,0x2
 00007C4F  BBB27C            mov bx,0x7cb2
 00007C52  E82300            call word 0x7c78
 00007C55  BDB27C            mov bp,0x7cb2
-00007C58  B91D00            mov cx,0x1d
+00007C58  B9E803            mov cx,0x3e8
 00007C5B  E80400            call word 0x7c62
 00007C5E  F4                hlt
 00007C5F  E9FCFF            jmp word 0x7c5e
