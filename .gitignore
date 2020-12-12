@@ -2,3 +2,7 @@
 **/*.vswp
 **/a.out
 **/gitignore
+**/*.bin
+**/*.img
+**/*.exe
+**/*.bat
