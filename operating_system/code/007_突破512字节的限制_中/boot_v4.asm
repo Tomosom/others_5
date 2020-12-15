@@ -58,6 +58,39 @@ last:
     hlt
     jmp last    
 
+; ds:si --> source
+; es:di --> destination
+; cx    --> length
+;
+; return:
+;        (cx == 0) ? equal : noequal
+MemCmp:
+	; 此处为什么不将CX入栈保存? 因为cx寄存器是作为返回值来使用
+    push si
+    push di
+    push ax
+    
+compare:
+    cmp cx, 0
+    jz equal
+    mov al, [si]
+    cmp al, byte [di] ; 显示指明 用di所指向的内存单元的一个字节 来和al里边的值作比较
+    jz goon
+    jmp noequal
+goon:
+    inc si
+    inc di
+    dec cx
+    jmp compare
+    
+equal:
+noequal:   
+    pop ax
+    pop di
+    pop si
+    
+    ret
+
 ; 用寄存器传递参数
 ; es:bp --> string address 目标字符串的地址
 ; cx    --> string length  目标字符串的长度

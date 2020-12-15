@@ -7,7 +7,7 @@
 
 - 主引导程序
     - 一段存储在主引导区（MBR )中的有效代码
-    - 并不固化于硬件，<font color=blue>属于操作系统代码的一部分</font>
+    - 并不固化于硬件，<font color=red>属于操作系统代码的一部分</font>
     - <font color=red>启动操作系统内核的桥梁</font>，由汇编程序写成
     - 代码总量不能超过 <font color=red>512</font> 个字节（<font color=red>包含 0x55aa</font> )
 
@@ -46,7 +46,7 @@
     - 标签
         - 用于标识后续指令的地址（可等同为C语言中的标签(goto 标签)）
     -  $ vs $$
-<font color=red>        - <font color=blue>$ 表示当前指令行地址</font>，</font>$$ 表示当前汇编段起始地址
+        - `$` 表示当前指令行地址，`$$` 表示当前汇编段起始地址
 
 - 中断调用 vs 函数调用
     - 在屏幕上打印一个字符
@@ -77,12 +77,12 @@
     1. VMware15.0.4
     2. Ubuntu 10.10 ( 查看Ubuntu版本 : lsb_release -a )
 ## 生成实验原材料
-<pre style=" background-color:#fff">
 
-$ <font color=blue>ls</font>
+```
+$ ls
 boot.asm
-$ <font color=blue>nasm boot.asm -o boot.bin</font>
-$ <font color=blue>bximage a.img -q -fd -size=1.44</font> // 可单独使用bximage配置参数
+$ nasm boot.asm -o boot.bin
+$ bximage a.img -q -fd -size=1.44 // 可单独使用bximage配置参数
 ========================================================================
                                 bximage
                   Disk Image Creation Tool for Bochs
@@ -101,14 +101,13 @@ I wrote 1474560 bytes to a.img.
 
 The following line should appear in your bochsrc:
   floppya: image="a.img", status=inserted
-$ <font color=blue>ls</font>
+$ ls
 a.img  boot.asm  boot.bin
-$ <font color=blue>dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc</font>
+$ dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc
 记录了1+0 的读入
 记录了1+0 的写出
 512字节(512 B)已复制，0.000342366 秒，1.5 MB/秒
-
-</pre>
+```
 
 ## 操作系统环境搭建
 ### 创建虚拟机
@@ -140,6 +139,6 @@ $ <font color=blue>dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc</font>
 
 # 小结
 - 主引导程序的代码量不能超过 <font color=red>512</font> 字节
-- 主引导程序需要使用 <font color=blue>汇编语言</font> 开发
-- 主引导程序中可以<font color=#00d>通过BIOS中断使用硬件功能</font>
+- 主引导程序需要使用 <font color=red>汇编语言</font> 开发
+- 主引导程序中可以<font color=red>通过BIOS中断使用硬件功能</font>
 - 主引导程序运行于实模式（<font color=#d0d>地址都是实际的物理地址</font>)
