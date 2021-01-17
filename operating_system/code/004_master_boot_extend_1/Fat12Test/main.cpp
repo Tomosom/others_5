@@ -53,6 +53,10 @@ void PrintHeader(Fat12Header& rf, string p)
         return;
     }
 
+	/*
+     * 偏移3个字节: 因为与文件系统相关的信息就是从第0扇区偏移3个字节的地方开始的.
+     * 遵循fat12的数据组织方式, 遵循规定, (参考004 fat12主引导区表 前面3个是跳转指令)
+	 */
     file.seekg(3);
 
     //file.get(reinterpret_cast<char*>(&rf), sizeof(rf) + 1); // error
