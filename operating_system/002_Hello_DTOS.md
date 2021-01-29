@@ -45,8 +45,8 @@
         ```
     - 标签
         - 用于标识后续指令的地址（可等同为C语言中的标签(goto 标签)）
-    -  $ vs $$
-        - `$` 表示当前指令行地址，`$$` 表示当前汇编段起始地址
+    -  `$` vs `$$`
+        - `$` 表示当前指令行地址，`$$` 表示当前汇编段起始地址 (程序的起始地址, 比如主引导程序就是最开始的0x7c00)
 
 - 中断调用 vs 函数调用
     - 在屏幕上打印一个字符
@@ -73,69 +73,69 @@
         - `dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc`
 
 # [<u>编程实验 运行引导加载程序</u>](code/002_Hello_DTOS)
-实验环境 :
+- 实验环境 :
     1. VMware15.0.4
     2. Ubuntu 10.10 ( 查看Ubuntu版本 : lsb_release -a )
-## 生成实验原材料
+- 生成实验原材料
 
-```
-$ ls
-boot.asm
-$ nasm boot.asm -o boot.bin
-$ bximage a.img -q -fd -size=1.44 // 可单独使用bximage配置参数
-========================================================================
-                                bximage
-                  Disk Image Creation Tool for Bochs
-        $Id: bximage.c,v 1.34 2009/04/14 09:45:22 sshwarts Exp $
-========================================================================
-I will create a floppy image with
-  cyl=80
-  heads=2
-  sectors per track=18
-  total sectors=2880
-  total bytes=1474560
+    ```
+    $ ls
+    boot.asm
+    $ nasm boot.asm -o boot.bin
+    $ bximage a.img -q -fd -size=1.44 // 可单独使用bximage配置参数
+    ========================================================================
+                                    bximage
+                      Disk Image Creation Tool for Bochs
+            $Id: bximage.c,v 1.34 2009/04/14 09:45:22 sshwarts Exp $
+    ========================================================================
+    I will create a floppy image with
+      cyl=80
+      heads=2
+      sectors per track=18
+      total sectors=2880
+      total bytes=1474560
 
-Writing: [] Done.
+    Writing: [] Done.
 
-I wrote 1474560 bytes to a.img.
+    I wrote 1474560 bytes to a.img.
 
-The following line should appear in your bochsrc:
-  floppya: image="a.img", status=inserted
-$ ls
-a.img  boot.asm  boot.bin
-$ dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc
-记录了1+0 的读入
-记录了1+0 的写出
-512字节(512 B)已复制，0.000342366 秒，1.5 MB/秒
-```
+    The following line should appear in your bochsrc:
+      floppya: image="a.img", status=inserted
+    $ ls
+    a.img  boot.asm  boot.bin
+    $ dd if=boot.bin of=a.img bs=512 count=1 conv=notrunc
+    记录了1+0 的读入
+    记录了1+0 的写出
+    512字节(512 B)已复制，0.000342366 秒，1.5 MB/秒
+    ```
 
-## 操作系统环境搭建
-### 创建虚拟机
-1. 打开VMware Workstation, 创建新的虚拟机
-2. 自定义 -> 下一步
-3. 硬件兼容性选择 Workstation 6.5-7.x -> 下一步
-4. 选择'稍后安装操作系统' -> 下一步
-5. 客户机操作系统:其他, 版本:其他 -> 下一步
-6. 虚拟机名:DTOS, 选择位置(xxx) -> 下一步
-7. 处理器数量:1, 每个处理器内核数量:1 -> 下一步
-8. 此虚拟机的内存:512M -> 下一步
-9. 选择'不使用网络连接' -> 下一步
-10. 默认推荐 ->下一步
-11. 默认推荐 -> 下一步
-12. 选择'创建新虚拟磁盘' -> 下一步
-13. 最大磁盘大小:32G, 选择'将虚拟磁盘存储为单个文件' -> 下一步
-14. 下一步
-15. 自定义硬件 -> 添加 -> 软盘驱动器 -> 完成 -> 关闭 -> 完成
-### 无操作系统启动虚拟机
-开启此虚拟机, 下面提示选择否
-![](_v_images_002/e1.png)
-虚拟机提示下面打印
-![](_v_images_002/e2.png)
-### 用制作的虚拟软盘启动
-1. 将上面制作的a.img拷贝到创建的虚拟机的目录(xxx)
-2. 打开VMware, 编辑DTOS虚拟机设置 -> 硬件 -> 软盘 -> 勾选'启动时连接' -> 使用软盘映像文件:选择a.img -> 确定
-3. 开启此虚拟机, 成功打印
-![](_v_images_002/e3.png)
+- 操作系统环境搭建
+    - 创建虚拟机
+        1. 打开VMware Workstation, 创建新的虚拟机
+        2. 自定义 -> 下一步
+        3. 硬件兼容性选择 Workstation 6.5-7.x -> 下一步
+        4. 选择'稍后安装操作系统' -> 下一步
+        5. 客户机操作系统:其他, 版本:其他 -> 下一步
+        6. 虚拟机名:DTOS, 选择位置(xxx) -> 下一步
+        7. 处理器数量:1, 每个处理器内核数量:1 -> 下一步
+        8. 此虚拟机的内存:512M -> 下一步
+        9. 选择'不使用网络连接' -> 下一步
+        10. 默认推荐 ->下一步
+        11. 默认推荐 -> 下一步
+        12. 选择'创建新虚拟磁盘' -> 下一步
+        13. 最大磁盘大小:32G, 选择'将虚拟磁盘存储为单个文件' -> 下一步
+        14. 下一步
+        15. 自定义硬件 -> 添加 -> 软盘驱动器 -> 完成 -> 关闭 -> 完成
+    - 无操作系统启动虚拟机
+        1. 开启此虚拟机, 下面提示选择否
+        ![](_v_images_002/e1.png)
+        2. 虚拟机提示下面打印
+        ![](_v_images_002/e2.png)
+    - 用制作的虚拟软盘启动
+        1. 将上面制作的a.img拷贝到创建的虚拟机的目录(xxx)
+        2. 打开VMware, 编辑DTOS虚拟机设置 -> 硬件 -> 软盘 -> 勾选'启动时连接' -> 使用软盘映像文件:选择a.img -> 确定
+        3. 开启此虚拟机, 成功打印
+        ![](_v_images_002/e3.png)
 
 # 小结
 - 主引导程序的代码量不能超过 <font color=red>512</font> 字节
